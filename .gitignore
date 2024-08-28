@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 장고 관련
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db_settings.py
+db.sqlite3
+db_settings.py
+
+# Visual Studio Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Thumbnails
+_Thumbnails/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Environments
+venv/
+env/
+
+# Pipenv
+Pipfile.lock
+
+# Poetry
+pyproject.toml
+poetry.lock
+
+# meal_photos 내 파일 
+meal_photos/
+
+# .pyc 파일
+*.pyc
+
+.env
+
