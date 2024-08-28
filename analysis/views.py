@@ -3,6 +3,9 @@ from django.http import JsonResponse
 from langchain import OpenAI
 from langchain.chains import ConversationChain
 from django.views.decorators.csrf import csrf_exempt
+import json
+import openai
+import time
 
 # 환경 변수 로드
 env = environ.Env()
@@ -10,46 +13,62 @@ environ.Env.read_env()
 
 # OpenAI API 키 설정
 openai_api_key = env('OPENAI_API_KEY')
+openai_api_key2 = env('OPENAI_ASSISTANTS_API_KEY')
 
-# LangChain 및 OpenAI 클라이언트 설정
-llm = OpenAI(openai_api_key=openai_api_key)
-conversation_chain = ConversationChain(llm=llm)
 
+# 첫 번째 LLM (conversation_chain)
+llm1 = OpenAI(api_key=openai_api_key)
+conversation_chain1 = ConversationChain(llm=llm1)
+
+# 두 번째 LLM (conversation_chain2)
+llm2 = OpenAI(api_key=openai_api_key2)
+conversation_chain2 = ConversationChain(llm=llm2)
 # 대화 기록 저장을 위한 리스트
 conversation_history = []
 
 @csrf_exempt
 def continue_conversation(request):
-    try:
-        user_input = request.POST.get('text', '')
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)  # JSON 본문 데이터 처리
+            user_input = data.get('text')
 
-        # LangChain을 사용하여 대화 이어나가기
-        conversation_response = conversation_chain.run(user_input)
+            # LangChain을 통해 대화를 이어나감
+            conversation_response = conversation_chain1.invoke({"input": user_input})
+            
+            # 대화 내용을 저장
+            conversation_history.append(conversation_response)
+            
+            return JsonResponse({
+                'conversation': conversation_response,
+            })
+        except Exception as e:
+            print(f"Error during conversation: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=500)
 
-        # 대화 기록에 추가
-        conversation_history.append(f"사용자: {user_input}")
-        conversation_history.append(f"AI: {conversation_response}")
-
-        # 'conversation' 키에 대화 내용을 담아 반환
-        return JsonResponse({"conversation": f"사용자: {user_input} \n AI: {conversation_response}"})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @csrf_exempt
 def analyze_text(request):
-    try:
-        analysis_input = request.POST.get('analysis_input', '')
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)  # JSON 본문 데이터 처리
+            analysis_input = data.get('analysis_input')  # 감정 분석 및 요약 요청
 
-        # 대화 기록을 하나의 텍스트로 결합
-        conversation_context = "\n".join(conversation_history)
+            # 대화 기록을 하나의 텍스트로 결합
+            conversation_context = "\n".join(
+                [f"User: {item['input']}\nAI: {item['response']}" for item in conversation_history]
+            )
 
-        # 분석 요청과 함께 대화 내용을 프롬프트로 전달
-        prompt = f"다음은 사용자와 AI 간의 대화 내용입니다:\n{conversation_context}\n\n" \
-                 f"이 대화를 바탕으로 다음 질문을 분석해주세요:\n{analysis_input}"
+            # 분석 요청을 위한 프롬프트 생성
+            prompt = f"The following is a conversation history:\n{conversation_context}\n\nThe user requested the following analysis:\n{analysis_input}\n\nPlease provide the analysis and summarize the emotions present in the conversation history."
 
-        # LangChain을 사용하여 분석 수행
-        analysis_response = conversation_chain.run(prompt)
+            # 두 번째 LLM을 사용하여 감정 분석 및 요약 요청
+            response = conversation_chain2.run(prompt)
 
-        return JsonResponse({"result": analysis_response})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+            return JsonResponse({'result': response.strip()})
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
