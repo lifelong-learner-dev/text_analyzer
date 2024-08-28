@@ -8,7 +8,7 @@
 ### 처음에 Assistants API가 작동되지 않았을 때 해결하기 위해 시간을 너무 오래 끌었으며, 기존에 알고 있었던 것이여서 더욱 당황을 하게 되었다.
 
 ###
-![작동 화면](img/Screenshot2024-08-28.png)
+![작동 화면](https://github.com/lifelong-learner-dev/text_analyzer/blob/main/img/Screenshot%202024-08-28%20at%2022.51.58.png)
 ### 작동 방식
 - 1. 대화형 텍스트 분석기 하단의 입력창에 내용 입력가능
 - 2. 입력 후 전송 버튼 클릭
