@@ -61,7 +61,7 @@ def analyze_text(request):
             )
 
             # 분석 요청을 위한 프롬프트 생성
-            prompt = f"The following is a conversation history:\n{conversation_context}\n\nThe user requested the following analysis:\n{analysis_input}\n\nPlease provide the analysis and summarize the emotions present in the conversation history."
+            prompt = f"The following is a conversation history:\n{conversation_context}\n\nThe user requested the following analysis:\n{analysis_input}\n\nPlease provide the analysis of conversations in the conversation history."
 
             # 두 번째 LLM을 사용하여 감정 분석 및 요약 요청
             response = conversation_chain2.run(prompt)
